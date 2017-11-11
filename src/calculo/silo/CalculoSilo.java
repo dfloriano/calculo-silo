@@ -5,7 +5,11 @@
  */
 package calculo.silo;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -28,8 +32,8 @@ public class CalculoSilo {
 
     public static void main(String[] args) {
         DecimalFormat decimal = new DecimalFormat("0.##");
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm");
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 
         JSONParser parser = new JSONParser();
 
@@ -39,13 +43,13 @@ public class CalculoSilo {
             double volumeMetroCub = volume / Math.pow(100, 3); //100³
 
             JSONArray medicoes = (JSONArray) arquivo;
-
+            
             for (int i = 0; i < medicoes.size(); i++) {
                 BigDecimal soma = new BigDecimal(0);
                 BigDecimal livre;
                 BigDecimal ocupado;
-
                 Date data = df.parse(((JSONObject) medicoes.get(i)).get("datetime").toString());
+                
                 JSONObject medicao = (JSONObject) ((JSONObject) medicoes.get(i)).get("distances");
 
                 for (int j = 0; j < DIMENSAO_MATRIZ; j++) {
@@ -54,20 +58,18 @@ public class CalculoSilo {
                     for (int k = 0; k < DIMENSAO_MATRIZ; k++) {
                         soma = soma.add(new BigDecimal(colunas.get("p" + (k + 1)).toString()));
                     }
-
-                    livre = soma.multiply(new BigDecimal(AREA_QUADRANTE)).divide(new BigDecimal(100).pow(3)).setScale(2, BigDecimal.ROUND_UP);
-                    ocupado = new BigDecimal(volume).divide(new BigDecimal(100).pow(3)).subtract(livre).setScale(2, BigDecimal.ROUND_UP);
-
-                    String livrePer = decimal.format((livre.doubleValue() * 100) / volumeMetroCub);
-                    String ocupadoPer = decimal.format((ocupado.doubleValue() * 100) / volumeMetroCub);
-
-                    System.out.println("\nLeitura:" + sdf.format(data) + "\nLivre: " + livre + "m³(" + livrePer + "%)\nOcupado: " + ocupado + "m³(" + ocupadoPer + "%)");
                 }
+                
+                livre = soma.multiply(new BigDecimal(AREA_QUADRANTE)).divide(new BigDecimal(100).pow(3)).setScale(2, BigDecimal.ROUND_UP);
+                ocupado = new BigDecimal(volume).divide(new BigDecimal(100).pow(3)).subtract(livre).setScale(2, BigDecimal.ROUND_UP);
 
+                String livrePer = decimal.format((livre.doubleValue() * 100) / volumeMetroCub);
+                String ocupadoPer = decimal.format((ocupado.doubleValue() * 100) / volumeMetroCub);
+                
+                System.out.println("\nLeitura:" + sdf.format(data) + "\nLivre: " + livre + "m³(" + livrePer + "%)\nOcupado: " + ocupado + "m³(" + ocupadoPer + "%)");                                                          
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }
